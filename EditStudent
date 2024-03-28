@@ -1,0 +1,210 @@
+using Microsoft.SqlServer.Server; // Import the Microsoft SQL Server namespace
+using System;
+using System.Data.SqlClient; // Import the SQL Client namespace
+using System.Windows.Forms;
+
+namespace Beta2
+{
+    public partial class EditStudent : Form
+    {
+        // Define the SQL connection string (replace placeholders with actual credentials)
+        public static string SQLAddress = "Your_SQL_Server_Connection_String_Here";
+
+        public string currentStudentID;
+        public SqlConnection sqlConnect;
+        bool connected;
+
+        public EditStudent()
+        {
+            InitializeComponent();
+            SQLConnect(); // Call the method to establish SQL connection
+        }
+
+        // Method to establish SQL connection
+        public void SQLConnect()
+        {
+            if (!connected)
+            {
+                try
+                {
+                    // Open SQL connection
+                    using (sqlConnect = new SqlConnection(SQLAddress))
+                    {
+                        sqlConnect.Open();
+                    }
+                }
+                catch (SqlException)
+                {
+                    MessageBox.Show("Could Not Connect Contact Administrator");
+                }
+                catch (Exception)
+                {
+                    MessageBox.Show("Exception Found");
+                }
+            }
+            else
+            {
+                return;
+            }
+        }
+
+        // Method to update student data
+        void UpdateStudent()
+        {
+            if (checkBox1.Checked)
+            {
+                // Retrieve input data from form controls
+                string japSNkan = JapSNkan.Text;
+                string japFNkan = JapFNkan.Text;
+                string japSNhira = JapSNhira.Text;
+                string japFNhira = JapFNhira.Text;
+                string japSNrom = JapSNrom.Text;
+                string japFNrom = JapFNrom.Text;
+                string japSNCAPS = JapSNCAPS.Text;
+                string taxCode = TaxCode.Text;
+                string customerNumber = CustomerNumber.Text;
+                string fullAddress = FullAddress.Text;
+                string homePhone = HomePhone.Text;
+                string tel1 = Tel1.Text;
+                string tel2 = Tel2.Text;
+                string mail1 = Mail1.Text;
+                string mail2 = Mail2.Text;
+                string yearJoined = YearJoined.Text;
+                string monthJoined = MonthJoined.Text;
+                string academicYear = AcademicYear.Text;
+                string leavingYear = LeavingYear.Text;
+                string leavingMonth = LeavingMonth.Text;
+                string withdrawlYear = WithdrawlYear.Text;
+                string withdrawlMonth = WithdrawlMonth.Text;
+                string dateOfBirth = DateOfBirth.Text;
+                string school = School.Text;
+                string course1 = Course1.Text;
+                string class1 = Class1.Text;
+                string day1 = Day1.Text;
+                string Teacher1 = teacher1.Text;
+                string course2 = Course2.Text;
+                string class2 = Class2.Text;
+                string day2 = Day2.Text;
+                string Teacher2 = teacher2.Text;
+                string course3 = Course3.Text;
+                string class3 = Class3.Text;
+                string day3 = Day3.Text;
+                string Teacher3 = teacher3.Text;
+                string course4 = Course4.Text;
+                string class4 = Class4.Text;
+                string day4 = Day4.Text;
+                string Teacher4 = teacher4.Text;
+                string course5 = Course5.Text;
+                string class5 = Class5.Text;
+                string day5 = Day5.Text;
+                string Teacher5 = teacher5.Text;
+
+                                // Retrieve the ID of the student being edited
+                string studentID = currentStudentID;
+
+                // Update the corresponding record in the database
+                using (SqlConnection sqlConnect = new SqlConnection(SQLAddress))
+                {
+                    sqlConnect.Open();
+                    string query = @"
+                    UPDATE StudentData 
+                    SET 
+                        姓 = @JapSNkan,
+                        名 = @JapFNkan,
+                        せい = @JapSNhira,
+                        めい = @JapFNhira,
+                        ローマ字姓 = @JapSNrom,
+                        ローマ字名 = @JapFNrom,
+                        ローマ字姓大 = @JapSNCAPS,
+                        かつかいしゅう番号 = @TaxCode,
+                        郵便番号 = @CustomerNumber,
+                        住所 = @FullAddress,
+                        自宅電話番号 = @HomePhone,
+                        携帯電話1 = @Tel1,
+                        携帯電話2 = @Tel2,
+                        メールアドレス1 = @Mail1,
+                        メールアドレス2 = @Mail2,
+                        入会年 = @YearJoined,
+                        入会月 = @MonthJoined,
+                        年度学年 = @AcademicYear,
+                        休会年 = @LeavingYear,
+                        休会月 = @LeavingMonth,
+                        退会年 = @WithdrawlYear,
+                        退会末月 = @WithdrawlMonth,
+                        生年月日 = @DateOfBirth,
+                        学校 = @School,
+                        コース1 = @Course1,
+                        クラス1 = @Class1,
+                        曜日1 = @Day1,
+                        講師1 = @Teacher1,
+                        コース2 = @Course2,
+                        クラス2 = @Class2,
+                        曜日2 = @Day2,
+                        講師2 = @Teacher2,
+                        コース3 = @Course3,
+                        クラス3 = @Class3,
+                        曜日3 = @Day3,
+                        講師3 = @Teacher3,
+                        コース4 = @Course4,
+                        クラス4 = @Class4,
+                        曜日4 = @Day4,
+                        講師4 = @Teacher4,
+                        コース5 = @Course5,
+                        クラス5 = @Class5,
+                        曜日5 = @Day5,
+                        講師5 = @Teacher5
+                    WHERE 
+                        id = @StudentID";
+
+                    SqlCommand command = new SqlCommand(query, sqlConnect);
+                    
+                    // Bind parameters to SQL command
+                    command.Parameters.AddWithValue("@JapSNkan", japSNkan);
+                    command.Parameters.AddWithValue("@JapFNkan", japFNkan);
+                    // Add other parameters similarly...
+
+                    try
+                    {
+                        // Execute the SQL command
+                        int rowsAffected = command.ExecuteNonQuery();
+                        if (rowsAffected > 0)
+                        {
+                            MessageBox.Show("Record updated successfully.");
+                            // Optionally, close the form or perform any other action
+                        }
+                        else
+                        {
+                            MessageBox.Show("No records were updated.");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show("Error: " + ex.Message);
+                    }
+                }
+            }
+            else
+            {
+                MessageBox.Show("Please enable editing to save updates");
+            }
+        }
+
+        // Event handlers for text changed in form controls
+        // Add your event handler methods here...
+
+        private void button1_Click_1(object sender, EventArgs e)
+        {
+            if (checkBox1.Checked)
+            {
+                UpdateStudent(); // Call the method to update student data
+            }
+            else
+            {
+                MessageBox.Show("Please ENABLE check box to save changes.");
+            }
+        }
+
+        // Other event handlers and methods...
+    }
+}
+}
