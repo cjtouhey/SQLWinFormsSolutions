@@ -1,0 +1,292 @@
+using Microsoft.SqlServer.Server;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Data.SqlClient;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+
+namespace Beta2
+{
+    public partial class TodaysStudents : Form
+    {
+        // Replace sensitive data strings with placeholders
+        public static string SQLAddress = "Data Source=Something;Initial Catalog=Something;User ID=Something;Password=Something.";
+        public string searchString;
+        public SqlConnection sqlConnect;
+        public string todaysDay;
+        string convertedDay;
+        bool connected;
+        DataTable data1;
+
+        public TodaysStudents() 
+        {
+            InitializeComponent();
+            SQLConnect();
+            UpdateTeachers();
+            todaysStudents();
+        }
+
+        public void SQLConnect()
+        {
+            if (!connected)
+            {
+                try
+                {
+                    using (sqlConnect = new SqlConnection(SQLAddress))
+                    {
+                        sqlConnect.Open();
+                    }
+                }
+                catch (SqlException)
+                {
+                    MessageBox.Show("Could Not Connect Contact Administrator");
+                }
+                catch (Exception)
+                {
+                    MessageBox.Show("Exception Found");
+                }
+            }
+            else { return; }
+        }
+
+        void UpdateTeachers()
+        {
+            try
+            {
+                using (SqlConnection connect = new SqlConnection(SQLAddress))
+                {
+                    List<string> list = new List<string>();
+                    connect.Open();
+                    // Use a parameterized query to prevent SQL injection
+                    string query = "SELECT Teachers FROM TeacherList";
+                    using (SqlCommand command = new SqlCommand(query, connect))
+                    {
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                string columnValue = reader["Teachers"].ToString();
+                                // Add 'columnValue' to your list
+                                list.Add(columnValue);
+                            }
+                        }
+                    }
+                    data1 = new DataTable();
+                    // Now, after reading all values, update the ListBoxes
+                    listBox1.Items.Clear();
+                    listBox1.Items.AddRange(list.ToArray());
+                }
+            }
+            catch
+            {
+                // Handle exceptions
+            }
+        }
+
+        void todaysStudents()
+        {
+            // Calculate todays Day
+            if (todaysDay == null)
+            {
+                DateTime today = DateTime.Now;
+                DayOfWeek day = today.DayOfWeek;
+                todaysDay = day.ToString();
+            }
+
+            // if not already converted convert
+            if (convertedDay == null)
+            {
+                string SUN = "Sun";
+                string SAT = "Sat";
+                string MON = "Mon";
+                string TUE = "Tue";
+                string WED = "Wed";
+                string THURS = "Thu";
+                string FRI = "Fri";
+
+                // Check if today is one of these days and match it with the string above 
+                if (todaysDay == "Sunday") { convertedDay = SUN; }
+                if (todaysDay == "Saturday") { convertedDay = SAT; }
+                if (todaysDay == "Monday") { convertedDay = MON; }
+                if (todaysDay == "Tuesday") { convertedDay = TUE; }
+                if (todaysDay == "Wednesday") { convertedDay = WED; }
+                if (todaysDay == "Thursday") { convertedDay = THURS; }
+                if (todaysDay == "Friday") { convertedDay = FRI; }
+            }
+
+            // If this has all been done open an SQL connection 
+            using (sqlConnect = new SqlConnection(SQLAddress))
+            {
+                sqlConnect.Open();
+                dataGridView1.DataSource = null;
+                SqlCommand command = new SqlCommand("SELECT * FROM StudentData WHERE 曜日1 = @Day OR 曜日2 = @Day OR 曜日3 = @Day OR 曜日4 = @Day OR 曜日5 = @Day", sqlConnect);
+                command.Parameters.AddWithValue("@Day", convertedDay);
+                SqlDataAdapter adapter1 = new SqlDataAdapter(command);
+                DataTable data1 = new DataTable();
+                adapter1.Fill(data1);
+
+                // Assuming that you have a DataGridView named dataGridView1
+                dataGridView1.DataSource = data1;
+
+                if (dataGridView1.RowCount == 0 && dataGridView1.ColumnCount == 0)
+                {
+                    // Handle the case where dataGridView1 is empty
+                }
+            }
+        }
+
+        void refreshTodaysStudents()
+        {
+            if (textBox1.Text != null)
+            {
+                string currentTeacher;
+                currentTeacher = textBox1.Text;
+
+                using (sqlConnect = new SqlConnection(SQLAddress))
+                {
+                    sqlConnect.Open();
+                    dataGridView1.DataSource = null;
+                    SqlCommand command = new SqlCommand("SELECT * FROM StudentData WHERE 曜日1 = @Day AND  講師1 = @Teacher", sqlConnect);
+                    command.Parameters.AddWithValue("@Day", convertedDay);
+                    command.Parameters.AddWithValue("@Teacher", currentTeacher);
+                    SqlDataAdapter adapter1 = new SqlDataAdapter(command);
+                    DataTable data1 = new DataTable();
+                    adapter1.Fill(data1);
+
+                    // Assuming that you have a DataGridView named dataGridView1
+                    dataGridView1.DataSource = data1;
+
+                    if (dataGridView1.RowCount == 0 && dataGridView1.ColumnCount == 0)
+                    {
+                        // Handle the case where dataGridView1 is empty
+                    }
+                }
+            }
+        }
+
+        public void button1_Click(object sender, EventArgs e)
+        {
+            refreshTodaysStudents();
+        }
+
+        public void TeacherList_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            // Handle selection change event if needed
+        }
+
+        public void tableLayoutPanel3_Paint(object sender, PaintEventArgs e)
+        {
+            // Do painting operations if needed
+        }
+
+        public void TodaysStudents_Load(object sender, EventArgs e)
+        {
+            // TODO: This line of code loads data into the 'cjtouhey_DataSet.StudentData' table. You can move, or remove it, as needed.
+            this.studentDataTableAdapter.Fill(this.cjtouhey_DataSet.StudentData);
+        }
+
+        public void textBox1_TextChanged(object sender, EventArgs e)
+        {
+            // Handle text change event if needed
+        }
+
+        public void dataGridView1_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex >= 0 && e.ColumnIndex >= 0)
+            {
+                // Get the student ID from the clicked row
+                string studentID = dataGridView1.Rows[e.RowIndex].Cells["id"].Value.ToString();
+
+                // Query your database based on the student ID
+                using (SqlConnection sqlConnect = new SqlConnection(SQLAddress))
+                {
+                    sqlConnect.Open();
+                    string query = "SELECT * FROM StudentData WHERE id = @StudentID";
+                    SqlCommand command = new SqlCommand(query, sqlConnect);
+                    command.Parameters.AddWithValue("@StudentID", studentID);
+
+                    try
+                    {
+                        SqlDataReader reader = command.ExecuteReader();
+                        if (reader.Read())
+                        {
+                            // Populate the form with the retrieved data
+                            EditStudent form = new EditStudent();
+                            form.Show();
+                            form.JapSNkan.Text = reader["姓"].ToString();
+                            form.JapFNkan.Text = reader["名"].ToString();
+                            form.JapSNhira.Text = reader["せい"].ToString();
+                            form.JapFNhira.Text = reader["めい"].ToString();
+                            form.JapSNrom.Text = reader["ローマ字姓"].ToString();
+                            form.JapFNrom.Text = reader["ローマ字名"].ToString();
+                            form.JapSNCAPS.Text = reader["ローマ字姓大"].ToString();
+                            form.TaxCode.Text = reader["かつかいしゅう番号"].ToString();
+                            form.CustomerNumber.Text = reader["郵便番号"].ToString();
+                            form.FullAddress.Text = reader["住所"].ToString();
+                            form.HomePhone.Text = reader["自宅電話番号"].ToString();
+                            form.Tel1.Text = reader["携帯電話1"].ToString();
+                            form.Tel2.Text = reader["携帯電話2"].ToString();
+                            form.Mail1.Text = reader["メールアドレス1"].ToString();
+                            form.Mail2.Text = reader["メールアドレス2"].ToString();
+                            form.YearJoined.Text = reader["入会年"].ToString();
+                            form.MonthJoined.Text = reader["入会月"].ToString();
+                            form.AcademicYear.Text = reader["年度学年"].ToString();
+                            form.LeavingYear.Text = reader["休会年"].ToString();
+                            form.LeavingMonth.Text = reader["休会月"].ToString();
+                            form.WithdrawlYear.Text = reader["退会年"].ToString();
+                            form.WithdrawlMonth.Text = reader["退会末月"].ToString();
+                            form.DateOfBirth.Text = reader["生年月日"].ToString();
+                            form.School.Text = reader["学校"].ToString();
+                            form.Course1.Text = reader["コース1"].ToString();
+                            form.Class1.Text = reader["クラス1"].ToString();
+                            form.Day1.Text = reader["曜日1"].ToString();
+                            form.teacher1.Text = reader["講師1"].ToString();
+                            form.Course2.Text = reader["コース2"].ToString();
+                            form.Class2.Text = reader["クラス2"].ToString();
+                            form.Day2.Text = reader["曜日2"].ToString();
+                            form.teacher2.Text = reader["講師2"].ToString();
+                            form.Course3.Text = reader["コース3"].ToString();
+                            form.Class3.Text = reader["クラス3"].ToString();
+                            form.Day3.Text = reader["曜日3"].ToString();
+                            form.teacher3.Text = reader["講師3"].ToString();
+                            form.Course4.Text = reader["コース4"].ToString();
+                            form.Class4.Text = reader["クラス4"].ToString();
+                            form.Day4.Text = reader["曜日4"].ToString();
+                            form.teacher4.Text = reader["講師4"].ToString();
+                            form.Course5.Text = reader["コース5"].ToString();
+                            form.Class5.Text = reader["クラス5"].ToString();
+                            form.Day5.Text = reader["曜日5"].ToString();
+                            form.teacher5.Text = reader["講師5"].ToString();
+                            form.currentStudentID = reader["id"].ToString();
+                            // Close the reader
+                            reader.Close();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show("Error: " + ex.Message);
+                    }
+                }
+            }
+        }
+
+        public void listBox1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (listBox1.SelectedIndex != -1)
+            {
+                textBox1.Text = listBox1.SelectedItem.ToString();
+            }
+        }
+
+        private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+            // Handle cell content click event if needed
+        }
+    }
+}
