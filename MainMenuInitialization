@@ -1,0 +1,169 @@
+using Microsoft.Win32;
+using System;
+using System.Windows.Forms;
+
+namespace Beta2
+{
+    public partial class MainMenu : Form
+    {
+        string todaysDay;
+        public MainMenu()
+        {
+
+           
+           {
+                // Strings for registry check Win32
+                string keyName = @"Software\SomeAppName";
+                string valueName = "Agreed";
+
+
+                // if Key is returned true  load application as normal
+
+                if (RegistryKeyExists(keyName))
+                {
+                    InitializeComponent();
+
+                    MessageBox.Show("Hello! Welcome to SOMETHING database, its " + todaysDay + " have a good day.");
+
+
+                    // Server maintenance page load
+                    chromiumWebBrowser1.LoadUrl("");
+                    if (todaysDay == null)
+                    {
+                        DateTime today = DateTime.Now;
+                        DayOfWeek day = today.DayOfWeek;
+                        todaysDay = day.ToString();
+
+
+                    }
+
+
+                }
+
+                // If not then get the user to agree to the license terms 
+                else
+                {
+                    DialogResult result = MessageBox.Show(holder.agreement, "Agree?", MessageBoxButtons.YesNo);
+
+                    if (result == DialogResult.Yes)
+                    {
+
+                        //Once agreed load the application the same as the original method
+                        InitializeComponent();
+                        MessageBox.Show("Hello! Welcome to L4U database, its " + todaysDay + " have a good day.");
+                        CreateRegistryKey(keyName, valueName);
+
+
+                       // Browser for webbased server management 
+                        chromiumWebBrowser1.LoadUrl("");
+                        if (todaysDay == null)
+                        {
+                            DateTime today = DateTime.Now;
+                            DayOfWeek day = today.DayOfWeek;
+                            todaysDay = day.ToString();
+
+
+                        }
+                    }
+                    else
+                    {
+                        Application.Exit();
+                    }
+
+                }
+
+            }
+
+        }
+
+        public bool RegistryKeyExists(string keyName)
+        {
+            // Check if the registry key exists
+            RegistryKey key = Registry.CurrentUser.OpenSubKey(keyName);
+
+            bool exists = (key != null);
+
+            // Close the registry key
+            if (key != null)
+            {
+                key.Close();
+            }
+
+            return exists;
+        }
+
+        private void CreateRegistryKey(string keyName, string valueName)
+        {
+            // If the key doesn't exist, create it
+            RegistryKey key = Registry.CurrentUser.CreateSubKey(keyName);
+
+            // If the value doesn't exist, create it and set a default value
+            key.SetValue(valueName, "DefaultValue");
+
+            // Close the registry key
+            key.Close();
+        }
+
+        // open form window todays students 
+        public void button1_Click(object sender, EventArgs e)
+        {
+            TodaysStudents todaysStudents = new TodaysStudents();
+            todaysStudents.Show();
+        }
+
+       // open form window student searcg 
+        public void button2_Click(object sender, EventArgs e)
+        {
+            StudentSearch studentSearch = new StudentSearch();
+            studentSearch.Show();
+        }
+
+        // open form window add new student 
+        public void button3_Click(object sender, EventArgs e)
+        {
+            AddStudent add = new AddStudent();
+            add.Show();
+        }
+
+        // open form window add teacher 
+        public void button4_Click(object sender, EventArgs e)
+        {
+            AddTeacher addTeacher = new AddTeacher();
+            addTeacher.Show();
+        }
+
+        // open trello web browser 
+        public void button5_Click(object sender, EventArgs e)
+        {
+            TrelloProto Trello = new TrelloProto();
+            Trello.Show();
+        }
+
+        // open agreement 
+        public void button6_Click(object sender, EventArgs e)
+        {
+            License LA = new License();
+            LA.Show();
+        }
+
+        // CerfSharpWin form browser settings 
+        private void chromiumWebBrowser1_LoadingStateChanged(object sender, CefSharp.LoadingStateChangedEventArgs e)
+        {
+
+        }
+
+
+    }
+}
+
+
+public static class holder
+{
+    //holder for license agreement 
+    public static string agreement = "";
+
+
+
+
+}
+
