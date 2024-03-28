@@ -1,0 +1,167 @@
+using Microsoft.SqlServer.Server;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Data.SqlClient;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Web.UI.WebControls;
+using System.Windows.Forms;
+
+namespace Beta2
+{
+    public partial class AddTeacher : Form
+    {
+        // Replace sensitive data strings with placeholders
+        public static string SQLAddress = "Data Source=Something;Initial Catalog=Something;User ID=Something;Password=Something.";
+        public string searchString;
+        public SqlConnection sqlConnect;
+
+        public string todaysDay;
+        string convertedDay;
+        bool connected;
+
+        public AddTeacher()
+        {
+            InitializeComponent();
+            UpdateTeachers();
+        }
+
+        private void tableLayoutPanel2_Paint(object sender, PaintEventArgs e)
+        {
+            // Paint operations if needed
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            addTeacher();
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            DialogResult result = MessageBox.Show("このエントリを削除してもよろしいですか?", "Confirmation", MessageBoxButtons.YesNo);
+
+            if (result == DialogResult.Yes)
+            {
+                removeTeacher();
+            }
+            else
+            {
+                return;
+            }
+        }
+
+        private void textBox3_TextChanged(object sender, EventArgs e)
+        {
+            // Handle text change event if needed
+        }
+
+        private void listBox1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            // Handle selection change event if needed
+        }
+
+        void addTeacher()
+        {
+            string teacherName = textBox3.Text.Trim();  // Trim to remove leading and trailing whitespaces
+
+            if (!string.IsNullOrWhiteSpace(teacherName))
+            {
+                using (sqlConnect = new SqlConnection(SQLAddress))
+                {
+                    sqlConnect.Open();
+
+                    // Use correct parameter name
+                    string insertQuery = "INSERT INTO TeacherList ([Teachers]) VALUES (@Teachers)";
+
+                    using (SqlCommand command = new SqlCommand(insertQuery, sqlConnect))
+                    {
+                        command.Parameters.AddWithValue("@Teachers", teacherName);
+                        command.ExecuteNonQuery();
+                    }
+
+                    textBox3.Clear();
+                    MessageBox.Show("Added");
+                    UpdateTeachers();
+                }
+            }
+            else
+            {
+                MessageBox.Show("Please Enter Teacher's Name");
+            }
+        }
+
+        void UpdateTeachers()
+        {
+            try
+            {
+                using (SqlConnection connect = new SqlConnection(SQLAddress))
+                {
+                    List<string> list = new List<string>();
+
+                    connect.Open();
+
+                    // Use a parameterized query to prevent SQL injection
+                    string query = "SELECT Teachers FROM TeacherList";
+                    using (SqlCommand command = new SqlCommand(query, connect))
+                    {
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                string columnValue = reader["Teachers"].ToString();
+                                // Add 'columnValue' to your list
+                                list.Add(columnValue);
+                            }
+                        }
+                    }
+
+                    // Now, after reading all values, update the ListBoxes
+                    listBox1.Items.Clear();
+                    listBox1.Items.AddRange(list.ToArray());
+                }
+            }
+            catch
+            {
+                // Handle exceptions
+            }
+        }
+
+        void removeTeacher()
+        {
+            if (listBox1.SelectedIndex != -1)
+            {
+                string teacherName = listBox1.SelectedItem.ToString();
+
+                using (SqlConnection connect = new SqlConnection(SQLAddress))
+                {
+                    connect.Open();
+
+                    // Use correct parameter name
+                    string deleteQuery = "DELETE FROM TeacherList WHERE [Teachers] = @Teachers";
+
+                    using (SqlCommand command = new SqlCommand(deleteQuery, connect))
+                    {
+                        command.Parameters.AddWithValue("@Teachers", teacherName);
+                        command.ExecuteNonQuery();
+                    }
+
+                    MessageBox.Show("Teacher removed successfully");
+                    UpdateTeachers();
+                }
+            }
+            else
+            {
+                MessageBox.Show("Please select a teacher to remove");
+            }
+        }
+
+        private void textBox2_TextChanged(object sender, EventArgs e)
+        {
+            // Handle text change event if needed
+        }
+    }
+}
