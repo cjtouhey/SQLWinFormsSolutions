@@ -1,0 +1,578 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Data.SqlClient;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace Beta2
+{
+    public partial class StudentSearch : Form
+    {
+
+        // SQL address Data 
+        public static string SQLAddress = "Conection string of some form";
+        public string searchString;
+        public SqlConnection sqlConnect;
+
+        // Detect Conection or not
+        bool connected;
+
+        // Get student ID
+        public float CurrentStudentID;
+
+        // click function 
+   
+
+
+        public void SQLConnect()
+        {
+            if (!connected)
+            {
+                try
+                {
+                    using (sqlConnect = new SqlConnection(SQLAddress))
+                    {
+                        sqlConnect.Open();
+                    
+                    }
+
+
+                }
+
+                catch (SqlException)
+                {
+                    MessageBox.Show("Could Not Connect Contact Administrator");
+
+                }
+
+                catch (Exception)
+                {
+                    MessageBox.Show("Exception Found");
+                }
+
+
+
+
+            }
+
+            else { return; }
+        }
+
+        public StudentSearch()
+        {
+            InitializeComponent();
+            SQLConnect();
+            checkBox2.Checked = true; 
+        }
+
+
+        public void dataGridView1_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex >= 0 && e.ColumnIndex >= 0)
+            {
+                // Get the student ID from the clicked row
+                string studentID = dataGridView1.Rows[e.RowIndex].Cells["id"].Value.ToString();
+
+                // Query your database based on the student ID
+                using (SqlConnection sqlConnect = new SqlConnection(SQLAddress))
+                {
+                    sqlConnect.Open();
+                    string query = "SELECT * FROM StudentData WHERE id = @StudentID";
+                    SqlCommand command = new SqlCommand(query, sqlConnect);
+                    command.Parameters.AddWithValue("@StudentID", studentID);
+
+                    try
+                    {
+                        SqlDataReader reader = command.ExecuteReader();
+                        if (reader.Read())
+                        {
+                            // Populate the form with the retrieved data
+                            EditStudent form = new EditStudent();
+                            form.Show();
+                            form.JapSNkan.Text = reader["姓"].ToString();
+                            form.JapFNkan.Text = reader["名"].ToString();
+                            form.JapSNhira.Text = reader["せい"].ToString();
+                            form.JapFNhira.Text = reader["めい"].ToString();
+                            form.JapSNrom.Text = reader["ローマ字姓"].ToString();
+                            form.JapFNrom.Text = reader["ローマ字名"].ToString();
+                            form.JapSNCAPS.Text = reader["ローマ字姓大"].ToString();
+
+                            form.TaxCode.Text = reader["かつかいしゅう番号"].ToString();
+                            form.CustomerNumber.Text = reader["郵便番号"].ToString();
+                            form.FullAddress.Text = reader["住所"].ToString();
+                            form.HomePhone.Text = reader["自宅電話番号"].ToString();
+                            form.Tel1.Text = reader["携帯電話1"].ToString();
+                            form.Tel2.Text = reader["携帯電話2"].ToString();
+                            form.Mail1.Text = reader["メールアドレス1"].ToString();
+                            form.Mail2.Text = reader["メールアドレス2"].ToString();
+
+                            form.YearJoined.Text = reader["入会年"].ToString();
+                            form.MonthJoined.Text = reader["入会月"].ToString();
+                            form.AcademicYear.Text = reader["年度学年"].ToString();
+                            form.LeavingYear.Text = reader["休会年"].ToString();
+                            form.LeavingMonth.Text = reader["休会月"].ToString();
+                            form.WithdrawlYear.Text = reader["退会年"].ToString();
+                            form.WithdrawlMonth.Text = reader["退会末月"].ToString();
+                            form.DateOfBirth.Text = reader["生年月日"].ToString();
+                            form.School.Text = reader["学校"].ToString();
+
+                            form.Course1.Text = reader["コース1"].ToString();
+                            form.Class1.Text = reader["クラス1"].ToString();
+                            form.Day1.Text = reader["曜日1"].ToString();
+                            form.teacher1.Text = reader["講師1"].ToString();
+
+                            form.Course2.Text = reader["コース2"].ToString();
+                            form.Class2.Text = reader["クラス2"].ToString();
+                            form.Day2.Text = reader["曜日2"].ToString();
+                            form.teacher2.Text = reader["講師2"].ToString();
+
+                            form.Course3.Text = reader["コース3"].ToString();
+                            form.Class3.Text = reader["クラス3"].ToString();
+                            form.Day3.Text = reader["曜日3"].ToString();
+                            form.teacher3.Text = reader["講師3"].ToString();
+
+                            form.Course4.Text = reader["コース4"].ToString();
+                            form.Class4.Text = reader["クラス4"].ToString();
+                            form.Day4.Text = reader["曜日4"].ToString();
+                            form.teacher4.Text = reader["講師4"].ToString();
+
+                            form.Course5.Text = reader["コース5"].ToString();
+                            form.Class5.Text = reader["クラス5"].ToString();
+                            form.Day5.Text = reader["曜日5"].ToString();
+                            form.teacher5.Text = reader["講師5"].ToString();
+
+                            form.currentStudentID = reader["id"].ToString();
+
+                            // Close the reader
+                            reader.Close();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show("Error: " + ex.Message);
+                    }
+                }
+            }
+        }
+                public void button1_Click(object sender, EventArgs e)
+        {
+
+            if (!IsTableClear())
+
+            {
+                dataGridView1.DataSource = null;
+                dataGridView1.Rows.Clear();
+                dataGridView1.Columns.Clear();
+
+            }
+
+            if (checkBox1.Checked) { searchFunction1(); }
+            if (checkBox2.Checked) { searchFunction2(); }
+            if (checkBox3.Checked) { searchFunction3(); }
+            if (checkBox4.Checked) { searchFunction4(); }
+            if (checkBox5.Checked) { searchFunction5(); }
+            if (checkBox6.Checked) { searchFunction6(); }
+
+
+
+        }
+
+
+
+        public async Task ClearTable()
+        {
+
+            while (!IsTableClear())
+            {
+                await Task.Delay(500);
+            }
+
+
+        }
+
+        public bool IsTableClear()
+        {
+
+
+            return dataGridView1.ColumnCount == 0 && dataGridView1.RowCount == 0;
+        }
+
+        // class search
+        async void searchFunction1()
+        {
+            // First Stage clearing
+            try
+            {
+                await ClearTable();
+
+            }
+            catch
+            {
+                MessageBox.Show("Couldnt Clear Table Check Code");
+            }
+
+
+            // SQL OPEN 
+            using (sqlConnect = new SqlConnection(SQLAddress))
+            {
+                sqlConnect.Open();
+
+
+                SqlCommand command = new SqlCommand("SELECT * FROM StudentData WHERE クラス1 = @Name", sqlConnect);
+                command.Parameters.AddWithValue("@Name", searchString);
+                textBox1.Clear();
+
+                SqlDataAdapter adapter = new SqlDataAdapter(command);
+                DataTable data = new DataTable();
+                adapter.Fill(data);
+
+                // Assuming that you have a DataGridView named dataGridView1
+                dataGridView1.DataSource = data;
+
+
+            }
+        }
+
+
+        // student
+        async void searchFunction2()
+        {
+
+            // First Stage clearing
+            try
+            {
+                await ClearTable();
+
+            }
+            catch
+            {
+                MessageBox.Show("Couldnt Clear Table Check Code");
+            }
+
+
+            // SQL OPEN 
+            using (sqlConnect = new SqlConnection(SQLAddress))
+            {
+                sqlConnect.Open();
+
+
+                SqlCommand command = new SqlCommand("SELECT * FROM StudentData WHERE 姓 = @Name OR 名 = @Name OR 姓名 = @Name OR せい = @Name OR めい  = @Name OR ローマ字姓 =  @Name OR ローマ字姓大 =  @Name OR ローマ字名 =  @Name  ", sqlConnect);
+                command.Parameters.AddWithValue("@Name", searchString);
+                textBox1.Clear();
+
+                SqlDataAdapter adapter1 = new SqlDataAdapter(command);
+                DataTable data1 = new DataTable();
+                adapter1.Fill(data1);
+
+                // Assuming that you have a DataGridView named dataGridView1
+                dataGridView1.DataSource = data1;
+
+                if (dataGridView1.RowCount == 0 && dataGridView1.ColumnCount == 0)
+                {
+                    // Handle the case where dataGridView1 is empty
+                }
+
+                // Assuming that you have a DataGridView named dataGridView1
+
+
+               
+
+
+            }
+
+        }
+
+        // teacher 
+        async void searchFunction3()
+        {
+            // First Stage clearing
+            try
+            {
+                await ClearTable();
+
+            }
+            catch
+            {
+                MessageBox.Show("Couldnt Clear Table Check Code");
+            }
+
+
+            // SQL OPEN 
+            using (sqlConnect = new SqlConnection(SQLAddress))
+            {
+                sqlConnect.Open();
+                // 講師1
+
+                SqlCommand command = new SqlCommand("SELECT * FROM StudentData WHERE 講師1 = @Name OR 講師2 = @Name OR 講師3 = @Name OR 講師4 = @Name OR 講師5 = @Name", sqlConnect);
+                command.Parameters.AddWithValue("@Name", searchString);
+                textBox1.Clear();
+
+                SqlDataAdapter adapter = new SqlDataAdapter(command);
+                DataTable data = new DataTable();
+                adapter.Fill(data);
+
+                // Assuming that you have a DataGridView named dataGridView1
+                dataGridView1.DataSource = data;
+
+
+            }
+
+        }
+
+        //lesson search
+        async void searchFunction4()
+        {
+            // First Stage clearing
+            try
+            {
+                await ClearTable();
+
+            }
+            catch
+            {
+                MessageBox.Show("Couldnt Clear Table Check Code");
+            }
+
+
+            // SQL OPEN 
+            using (sqlConnect = new SqlConnection(SQLAddress))
+            {
+                sqlConnect.Open();
+
+
+                SqlCommand command = new SqlCommand("SELECT * FROM StudentData WHERE 年度学年 = @Name  ", sqlConnect);
+                command.Parameters.AddWithValue("@Name", searchString);
+                textBox1.Clear();
+
+                SqlDataAdapter adapter = new SqlDataAdapter(command);
+                DataTable data = new DataTable();
+                adapter.Fill(data);
+
+                // Assuming that you have a DataGridView named dataGridView1
+                dataGridView1.DataSource = data;
+
+
+            }
+        }
+
+        // Customer Number SEarch
+        async void searchFunction5()
+        {
+            // First Stage clearing
+            try
+            {
+                await ClearTable();
+
+            }
+            catch
+            {
+                MessageBox.Show("Couldnt Clear Table Check Code");
+            }
+
+
+            // SQL OPEN 
+            using (sqlConnect = new SqlConnection(SQLAddress))
+            {
+                sqlConnect.Open();
+
+
+                SqlCommand command = new SqlCommand("SELECT * FROM StudentData WHERE かつかいしゅう番号 = @Name", sqlConnect);
+                command.Parameters.AddWithValue("@Name", searchString);
+                textBox1.Clear();
+
+                SqlDataAdapter adapter = new SqlDataAdapter(command);
+                DataTable data = new DataTable();
+                adapter.Fill(data);
+
+                // Assuming that you have a DataGridView named dataGridView1
+                dataGridView1.DataSource = data;
+
+
+            }
+        }
+
+        async void searchFunction6()
+        {
+            // First Stage clearing
+            try
+            {
+                await ClearTable();
+
+            }
+            catch
+            {
+                MessageBox.Show("Couldnt Clear Table Check Code");
+            }
+
+
+            // SQL OPEN 
+            using (sqlConnect = new SqlConnection(SQLAddress))
+            {
+                sqlConnect.Open();
+
+
+                SqlCommand command = new SqlCommand("SELECT * FROM StudentData WHERE 入会年 = @Name", sqlConnect);
+                command.Parameters.AddWithValue("@Name", searchString);
+                textBox1.Clear();
+
+                SqlDataAdapter adapter = new SqlDataAdapter(command);
+                DataTable data = new DataTable();
+                adapter.Fill(data);
+
+                // Assuming that you have a DataGridView named dataGridView1
+                dataGridView1.DataSource = data;
+
+
+            }
+        }
+
+
+
+
+
+
+        public void dataGridView2_CellContentClick_1(object sender, DataGridViewCellEventArgs e)
+        {
+
+        }
+
+        public void button1_Click_1(object sender, EventArgs e)
+        {
+            // Check if the field box has data 
+            if (searchString != null)
+            {
+                // make sure the table is clear 
+                if (!IsTableClear())
+
+                {
+                    // reset the grid view 
+                    dataGridView1.DataSource = null;
+                    dataGridView1.Rows.Clear();
+                    dataGridView1.Columns.Clear();
+
+                }
+
+                // Decide on the search string based on which check box
+                if (checkBox1.Checked) { searchFunction1(); }
+                if (checkBox2.Checked) { searchFunction2(); }
+                if (checkBox3.Checked) { searchFunction3(); }
+                if (checkBox4.Checked) { searchFunction4(); }
+                if (checkBox5.Checked) { searchFunction5(); }
+                if (checkBox6.Checked) { searchFunction6(); }
+
+            }
+
+
+
+
+
+        }
+
+        public void checkBox1_CheckedChanged(object sender, EventArgs e)
+        {
+
+            if (checkBox1.Checked)
+            {
+                checkBox2.Checked = false;
+                checkBox3.Checked = false;
+                checkBox4.Checked = false;
+                checkBox5.Checked = false;
+                checkBox6.Checked = false;
+
+            }
+        }
+
+
+
+        //Student search box
+        public void checkBox2_CheckedChanged(object sender, EventArgs e)
+        {
+            if (checkBox2.Checked)
+            {
+                checkBox1.Checked = false;
+                checkBox3.Checked = false;
+                checkBox4.Checked = false;
+                checkBox5.Checked = false;
+                checkBox6.Checked = false;
+
+            }
+        }
+
+        // Teacher search box
+        public void checkBox3_CheckedChanged(object sender, EventArgs e)
+        {
+            if (checkBox3.Checked)
+            {
+                checkBox1.Checked = false;
+                checkBox2.Checked = false;
+                checkBox4.Checked = false;
+                checkBox5.Checked = false;
+                checkBox6.Checked = false;
+
+
+            }
+        }
+
+        // Lesson search box 
+        public void checkBox4_CheckedChanged(object sender, EventArgs e)
+        {
+            if (checkBox4.Checked)
+            {
+                checkBox2.Checked = false;
+                checkBox3.Checked = false;
+                checkBox1.Checked = false;
+                checkBox5.Checked = false;
+                checkBox6.Checked = false;
+
+
+            }
+        }
+
+        public void checkBox5_CheckedChanged(object sender, EventArgs e)
+        {
+            if (checkBox5.Checked)
+            {
+                checkBox2.Checked = false;
+                checkBox3.Checked = false;
+                checkBox1.Checked = false;
+                checkBox4.Checked = false;
+                checkBox6.Checked = false;
+
+
+            }
+
+        }
+
+        public void checkBox6_CheckedChanged(object sender, EventArgs e)
+        {
+            if (checkBox6.Checked)
+            {
+                checkBox2.Checked = false;
+                checkBox3.Checked = false;
+                checkBox1.Checked = false;
+                checkBox4.Checked = false;
+                checkBox5.Checked = false;
+
+
+            }
+        }
+
+        public void textBox1_TextChanged(object sender, EventArgs e)
+        {
+            searchString = textBox1.Text;
+        }
+
+        private void tableLayoutPanel3_Paint(object sender, PaintEventArgs e)
+        {
+
+        }
+    }
+
+
+
+}
