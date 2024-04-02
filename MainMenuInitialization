@@ -50,7 +50,7 @@ namespace Beta2
 
                         //Once agreed load the application the same as the original method
                         InitializeComponent();
-                        MessageBox.Show("Hello! Welcome to L4U database, its " + todaysDay + " have a good day.");
+                        MessageBox.Show("Hello! Welcome to SOMETHING database, its " + todaysDay + " have a good day.");
                         CreateRegistryKey(keyName, valueName);
 
 
