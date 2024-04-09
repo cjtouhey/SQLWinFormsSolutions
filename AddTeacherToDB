@@ -1,12 +1,7 @@
 using Microsoft.SqlServer.Server;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
 using System.Data.SqlClient;
-using System.Drawing;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Web.UI.WebControls;
 using System.Windows.Forms;
@@ -16,11 +11,12 @@ namespace Beta2
     public partial class AddTeacher : Form
     {
         // Replace sensitive data strings with placeholders
-        public static string SQLAddress = "Data Source=Something;Initial Catalog=Something;User ID=Something;Password=Something.";
+        private static string SQLAddress = "Data Source=Something;Initial Catalog=Something;User ID=Something;Password=Something.";
+
         public string searchString;
         public SqlConnection sqlConnect;
 
-        public string todaysDay;
+        string todaysDay;
         string convertedDay;
         bool connected;
 
